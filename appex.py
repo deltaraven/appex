@@ -2,6 +2,7 @@
 import argparse
 
 from sqlalchemy import Column, String, Table, and_, create_engine, func
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import aliased, sessionmaker
 from sqlalchemy.dialects import postgresql # referenced so py2app bundles it up
@@ -27,10 +28,30 @@ def parse_args():
         default="postgres", help="Connect as %(metavar)s (default=%(default)s)")
     return parser.parse_args()
 
+def mkuri(opts, passwd=""):
+    pwdstr = ":{}".format(passwd) if passwd else ""
+    return "postgresql://{x.username}{pwdstr}@{x.server}/{x.database}".format(
+        x=opts, pwdstr=pwdstr)
+
+def authed_engine(opts):
+    uri = mkuri(opts)
+    engine = create_engine(uri)
+    try:
+        with engine.connect():
+            pass
+    except OperationalError as exc:
+        if exc.message == "(psycopg2.OperationalError) fe_sendauth: no password supplied\n":
+            from getpass import getpass
+            passwd = getpass("Enter password for {}: ".format(opts.username))
+            uri = mkuri(opts, passwd)
+            engine = create_engine(uri)
+        else:
+            raise
+    return engine
+
 def main():
     opts = parse_args()
-    uri = "postgresql://{x.username}@{x.server}/{x.database}".format(x=opts)
-    engine = create_engine(uri)
+    engine = authed_engine(opts)
     print(engine)
     Session.configure(bind=engine)
 
