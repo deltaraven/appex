@@ -17,7 +17,7 @@ import argparse
 from sqlalchemy import Column, String, Table, and_, create_engine, func
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import aliased, sessionmaker
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.dialects import postgresql # referenced so py2app bundles it up
 
 Base = declarative_base()
@@ -33,7 +33,8 @@ Tables = Table("tables", Base.metadata,
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("database", help="Connect ")
+    parser.add_argument("database", metavar="DATABASE",
+        help="Connect to %(metavar)s")
     parser.add_argument("-s", "--server", metavar="HOST:PORT",
         default="localhost:5432", help="Connect to PostgreSQL server running "
         "at <%(metavar)s> (default=%(default)s)")
