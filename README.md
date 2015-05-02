@@ -30,6 +30,7 @@ ln -fs </path/to/your/postgresql>/bin/* $VIRTUAL_ENV/bin/
 ``` sh
 cd </path/to/appex>
 pip install -r requirements.txt
+./patch-py2app-recipes-virtualenv.sh
 ```
 
 ---
